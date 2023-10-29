@@ -55,7 +55,7 @@ and can be computed using $W$-bit arithmetic once $x \div d$, a $W$-bit value, i
 
 ### Positive divisor
 
-#### Preliminary check to exclude powers of $2$ divisors
+#### Preliminary check
 
 To check whether an _unsigned_ `int d` (an `int` interpreted as an unsigned value) is a power of $2$:
 
