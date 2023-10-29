@@ -1,6 +1,6 @@
 # Signed truncating integer division
 
-Raffaello Giulietti, v2023-10-29-02
+Raffaello Giulietti, v2023-10-29-03
 
 In terms of running time, division is the most expensive of the integer arithmetical/logical operations on contemporary CPUs.
 
@@ -25,7 +25,11 @@ The reason is twofold: there are faster computations when $d$ is a power of $2$;
 
 Compute
 
-$$m = (W - 1) + \lceil \log_2 d\rceil, \quad c = \lceil 2^m / d\rceil$$
+$$m = (W - 1) + \lceil \log_2 d\rceil, \qquad c = \lceil 2^m / d\rceil$$
+
+where $m$ and $c$ meet
+
+$$W + 1 \le m \le 2 W - 2, \qquad 2^{W-1} < c < 2^W$$
 
 Then, for integer $x$ meeting $0 \le x < 2^{W-1}$ we have
 
@@ -71,7 +75,6 @@ long c = (1L << m) / d + 1;     // the division only happens at compile-time
 ```
 
 No overflows occur.
-Also, observe that $W < m \le 2 W - 2$.
 
 #### Truncating division
 
