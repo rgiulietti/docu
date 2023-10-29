@@ -1,6 +1,6 @@
 # Signed truncating integer division by non-powers of $2$ constants
 
-Raffaello Giulietti, v2023-10-29-00
+Raffaello Giulietti, v2023-10-29-01
 
 In terms of running time, division is the most expensive of the integer arithmetical/logical operations on contemporary CPUs.
 
@@ -17,9 +17,12 @@ Detailed proofs of the core algorithm presented here can be found [elsewhere](ht
 * $\div$ denotes truncating division over the real numbers: $x \div d = \lfloor x / d\rfloor$ if $x / d \ge 0$, $x \div d = \lceil x / d\rceil$ otherwise, where $d \ne 0$.
 In Java code, with `int x, d`, and absent overflows, `x / y`${}= x \div d$.
 
-## Positive divisor: $d > 0$
+## Positive divisor
 
-Let integer $d$ meet both $0 < d < 2^{W-1}$.
+Let integer $d$ meet both $0 < d < 2^{W-1}$ and $d \ne 2^k$ for all integers $k \ge 0$.
+That is, we exclude powers of $2$, including $d = 1$, as divisors.
+The reason is twofold: there are faster computations when $d$ is a power of $2$; and it later simplifies the code a bit.
+
 Compute
 
 $$m = (W - 1) + \lceil \log_2 d\rceil, \quad c = \lceil 2^m / d\rceil$$
@@ -34,9 +37,9 @@ $$x \div d = \lfloor (x c - 1) / 2^m\rfloor + 1$$
 
 All computations can be done in signed $W$-bit arithmetic (for $m$), or signed $2 W$-bit arithmetic (for other values), and the quotient fits in $W$ bits.
 
-## Negative divisor: $d < 0$
+## Negative divisor
 
-For integer $d$ meeting $-2^{W-1} \le d < 0$ this case reduces to the above case by using the identity
+For integer $d$ meeting $-2^{W-1} \le d < 0$ and $-d \ne 2^k$ for all integers $k \ge 0$ (which excludes negated powers of $2$, including the extremes $d = -1$ and $d = -2^{W-1}$), this case reduces to the above case by using the identity
 
 $x \div d = -(x \div (-d))$
 
@@ -48,15 +51,9 @@ $$r = x - (x \div d) d$$
 
 and can be computed using $W$-bit arithmetic once $x \div d$, a $W$-bit value, is known.
 
-## Java code for the `int` case ($W = 32 = {}$`Integer.SIZE`)
+## Java code for the `int` case
 
-### Divisor $d > 0$
-
-We add the restriction that $d \ne 2^k$ for all integers $k \ge 0$.
-That is, we exclude powers of $2$, including $d = 1$, as divisors.
-The reasoon is that there are faster computations when $d$ is a power of $2$, and that it simplifies the code a bit.
-This implies
-$$W < m \le 2 W - 2$$
+### Positive divisor
 
 #### Preliminary check to exclude powers of $2$ divisors
 
@@ -74,6 +71,7 @@ long c = (1L << m) / d + 1;     // the division only happens at compile-time
 ```
 
 No overflows occur.
+Also, observe that $W < m \le 2 W - 2$.
 
 #### Truncating division
 
@@ -99,15 +97,14 @@ Of course, in compile-time contexts where `x` is known to be non-negative, the d
 int q = (int) (x * c >> m);
 ```
 
-resp.
+respectively
 
 ```java
 int q = high_half(x * c) >> (m - Integer.SIZE);
 ```
 
-### Divisor $d < 0$
+### Negative divisor
 
-Again, we impose the restriction $-d \ne 2^k$ for all integers $k \ge 0$ (which, in fact, excludes the extremes $d = -1$ and $d = -2^{W-1}$).
 Computing `-d` overflows to itself when `d = Integer.MIN_VALUE`, but this is not an issue: indeed, when seen as an unsigned value, this is a power of $2$, and thus excluded during the preliminary check.
 
 #### Preparation
