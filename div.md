@@ -1,6 +1,6 @@
 # Signed truncating integer division
 
-Raffaello Giulietti, v2023-10-29-04
+Raffaello Giulietti, v2023-10-29-05
 
 In terms of running time, division is the most expensive of the integer arithmetical/logical operations on contemporary CPUs.
 
@@ -27,7 +27,7 @@ Compute
 
 $$m = (W - 1) + \lceil \log_2 d\rceil, \qquad c = \lceil 2^m / d\rceil$$
 
-where $m$ and $c$ meet
+Here, $m$ and $c$ meet
 
 $$W + 1 \le m \le 2 W - 2, \qquad 2^{W-1} < c < 2^W$$
 
