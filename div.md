@@ -1,6 +1,6 @@
 # Signed truncating integer division
 
-Raffaello Giulietti, v2023-10-29-03
+Raffaello Giulietti, v2023-10-29-04
 
 In terms of running time, division is the most expensive of the integer arithmetical/logical operations on contemporary CPUs.
 
@@ -30,6 +30,8 @@ $$m = (W - 1) + \lceil \log_2 d\rceil, \qquad c = \lceil 2^m / d\rceil$$
 where $m$ and $c$ meet
 
 $$W + 1 \le m \le 2 W - 2, \qquad 2^{W-1} < c < 2^W$$
+
+so $c$ fits in an unsigned $W$-bit word.
 
 Then, for integer $x$ meeting $0 \le x < 2^{W-1}$ we have
 
@@ -75,6 +77,9 @@ long c = (1L << m) / d + 1;     // the division only happens at compile-time
 ```
 
 No overflows occur.
+
+Here, `c` could fit in an unsigned `int`.
+If so, below it must be masked with `0xFFFF_FFFFL` before multiplication.
 
 #### Truncating division
 
