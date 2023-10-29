@@ -1,6 +1,6 @@
-# Signed truncating integer division by non-powers of $2$ constants
+# Signed truncating integer division
 
-Raffaello Giulietti, v2023-10-29-01
+Raffaello Giulietti, v2023-10-29-02
 
 In terms of running time, division is the most expensive of the integer arithmetical/logical operations on contemporary CPUs.
 
