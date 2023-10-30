@@ -1,6 +1,6 @@
 # Signed truncating integer division
 
-Raffaello Giulietti, v2023-10-29-05
+Raffaello Giulietti, v2023-10-30-00
 
 In terms of running time, division is the most expensive of the integer arithmetical/logical operations on contemporary CPUs.
 
@@ -33,13 +33,13 @@ $$W + 1 \le m \le 2 W - 2, \qquad 2^{W-1} < c < 2^W$$
 
 so $c$ fits in an unsigned $W$-bit word.
 
-Then, for integer $x$ meeting $0 \le x < 2^{W-1}$ we have
+Then, for integer $x$ meeting $0 \le x < 2^{W-1}$, the quotient is
 
-$$x \div d = \lfloor x c / 2^m\rfloor$$
+$$q = x \div d = \lfloor x c / 2^m\rfloor$$
 
-and for integer $x$ meeting $-2^{W-1} \le x < 0$ we have
+and for integer $x$ meeting $-2^{W-1} \le x < 0$ it is
 
-$$x \div d = \lfloor (x c - 1) / 2^m\rfloor + 1$$
+$$q = x \div d = \lfloor (x c - 1) / 2^m\rfloor + 1$$
 
 All computations can be done in signed $W$-bit arithmetic (for $m$), or signed $2 W$-bit arithmetic (for other values), and the quotient fits in $W$ bits.
 
@@ -49,13 +49,13 @@ For integer $d$ meeting $-2^{W-1} \le d < 0$ and $-d \ne 2^k$ for all integers $
 
 $x \div d = -(x \div (-d))$
 
-## Truncated remainder
+## Remainder
 
-The _truncated remainder_ $r$ is defined as
+The _remainder_ $r$ is defined as
 
-$$r = x - (x \div d) d$$
+$$r = x - q d = x - (x \div d)d$$
 
-and can be computed using $W$-bit arithmetic once $x \div d$, a $W$-bit value, is known.
+and can be computed using $W$-bit arithmetic once $q$, a $W$-bit value, is known.
 
 ## Java code for the `int` case
 
@@ -83,18 +83,25 @@ If so, below it must be masked with `0xFFFF_FFFFL` before multiplication.
 
 #### Truncating division
 
+It turns out that, in the `int` case, $x c$ is never a multiple of $2^m$.
+This means that, for $x < 0$, the above equation for the quotient $q$ can be simplified to
+
+$$q = x \div d = \lfloor x c / 2^m\rfloor + 1$$
+
 ```java
 long p = x * c;     // to reduce latency, schedule the product before computing s
 int s = x >>> (Integer.SIZE - 1);   // 0 if x >= 0; 1 if x < 0
-int q = (int) (p - s >> m) + s;
+int q = (int) (p >> m) + s;
 ```
 
 again without overflows.
 
+#### Variations
+
 If accessing the high `int` half of a `long`, and shifting it, is faster than just shifting a `long`, the line for `q` can be replaced by
 
 ```java
-int q = (high_half(p - s) >> (m - Integer.SIZE)) + s;
+int q = (high_half(p) >> (m - Integer.SIZE)) + s;
 ```
 
 where the shift distance `m - Integer.SIZE` is a compile-time constant.
@@ -110,6 +117,9 @@ respectively
 ```java
 int q = high_half(x * c) >> (m - Integer.SIZE);
 ```
+
+Similarly when `x` is known to be negative.
+
 
 ### Negative divisor
 
@@ -127,7 +137,7 @@ long c = (-1L << m) / d + 1;    // the division only happens at compile-time
 ```java
 long p = x * c;     // to reduce latency, schedule the product before computing s
 int s = x >>> (Integer.SIZE - 1);   // 0 if x >= 0; 1 if x < 0
-int q = -((int) (p - s >> m) + s);
+int q = -((int) (p >> m) + s);
 ```
 
 with similar variations as above.
