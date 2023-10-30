@@ -1,6 +1,6 @@
 # Signed truncating integer division by constants
 
-Raffaello Giulietti, v2023-10-30-01
+Raffaello Giulietti, v2023-10-30-02
 
 In terms of running time, division is the most expensive of the integer arithmetical/logical operations on contemporary CPUs.
 
@@ -80,6 +80,18 @@ No overflows occur.
 
 Here, `c` could fit in an unsigned `int`.
 If so, below it must be masked with `0xFFFF_FFFFL` before multiplication.
+
+Since about half of the admitted divisors is even, one can apply a reduction step as follows
+
+```java
+int k = Integer.numberOfTrailingZeros((int) c);
+c >>>= k;
+m -= k;
+```
+
+As alluded, in about half of the cases this leads to a $c$ that fits in a signed `int`.
+For `int` divisors, the exponent $m$ still meets $m \ge W + 1$, even after reduction.
+This might help in emitting faster code.
 
 #### Truncating division
 
