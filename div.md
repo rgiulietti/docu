@@ -1,10 +1,10 @@
-# Signed truncating integer division
+# Signed truncating integer division by constants
 
-Raffaello Giulietti, v2023-10-30-00
+Raffaello Giulietti, v2023-10-30-01
 
 In terms of running time, division is the most expensive of the integer arithmetical/logical operations on contemporary CPUs.
 
-Given an integer compile-time constant `d` (whether during static compilation, or during JIT runtime compilation), the goal is to replace later computations of `x / d` with faster code producing the same outcome, where integer `x` is _not_ known at compile-time.
+Given an integer compile-time constant `d`, it turns out that it is possible to replace later computations of `x / d` with faster code producing the same outcome, where integer `x` is _not_ known at compile-time.
 A preparatory work, done at compile-time and that depends on `d` alone, leads to faster code for the division later on at run-time.
 
 Detailed proofs of the core algorithm presented here can be found [elsewhere](https://drive.google.com/file/d/1gp5xv4CAa78SVgCeWfGqqI4FfYYYuNFb), in §10.1.
@@ -20,7 +20,7 @@ In Java code, with `int x, d`, and absent overflows, `x / y`${}= x \div d$.
 ## Positive divisor
 
 Let integer $d$ meet both $0 < d < 2^{W-1}$ and $d \ne 2^k$ for all integers $k \ge 0$.
-That is, we exclude powers of $2$, including $d = 1$, as divisors.
+That is, we exclude powers of $2$, even $d = 1$, as divisors.
 The reason is twofold: there are faster computations when $d$ is a power of $2$; and it later simplifies the code a bit.
 
 Compute
@@ -33,7 +33,7 @@ $$W + 1 \le m \le 2 W - 2, \qquad 2^{W-1} < c < 2^W$$
 
 so $c$ fits in an unsigned $W$-bit word.
 
-Then, for integer $x$ meeting $0 \le x < 2^{W-1}$, the quotient is
+Then, for integer $x$ meeting $0 \le x < 2^{W-1}$, the quotient $q$ meets
 
 $$q = x \div d = \lfloor x c / 2^m\rfloor$$
 
@@ -45,13 +45,13 @@ All computations can be done in signed $W$-bit arithmetic (for $m$), or signed $
 
 ## Negative divisor
 
-For integer $d$ meeting $-2^{W-1} \le d < 0$ and $-d \ne 2^k$ for all integers $k \ge 0$ (which excludes negated powers of $2$, including the extremes $d = -1$ and $d = -2^{W-1}$), this case reduces to the above case by using the identity
+For integer $d$ meeting $-2^{W-1} \le d < 0$ and $-d \ne 2^k$ for all integers $k \ge 0$ (which excludes negated powers of $2$, even the extremes $d = -1$ and $d = -2^{W-1}$), this case reduces to the above by means of the identity
 
 $x \div d = -(x \div (-d))$
 
 ## Remainder
 
-The _remainder_ $r$ is defined as
+The remainder $r$ is defined as
 
 $$r = x - q d = x - (x \div d)d$$
 
@@ -83,7 +83,7 @@ If so, below it must be masked with `0xFFFF_FFFFL` before multiplication.
 
 #### Truncating division
 
-It turns out that, in the `int` case, $x c$ is never a multiple of $2^m$.
+It turns out that, in the `int` case, $x c$ is never a multiple of $2^m$, except for $x = 0$.
 This means that, for $x < 0$, the above equation for the quotient $q$ can be simplified to
 
 $$q = x \div d = \lfloor x c / 2^m\rfloor + 1$$
